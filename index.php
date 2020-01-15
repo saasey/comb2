@@ -1,53 +1,69 @@
 <?php
 
-$number = 12431;
+$number = 124310;
 $side = ""; //decbin($number);
-function compress_1(int $number, string $side, string $save = "")
+function compress_1(int $number, string $side = "", string $save = "")
 {
     //echo $number . " ";
     if ($side == "")
         $binary = decbin($number);
     else
         $binary = $side;
-    if (strlen($binary) < 4) {
-        return array($save . $binary[0], $binary);
+    if (strlen($binary) <= 8) {
+        return array($save, $binary);
     }
-    $save .= $binary[0];
-    $side ="";
-    $i = strlen($binary) - 1;
-    //$side = $binary[$i];
-    while ($i > 0) {
-        //$save = ($save << 1);
-        $bool = (int)($binary[$i] XOR $binary[$i - 1]);
+    // save will come out backward
 
-        $side .= $bool;
-        $i--;
+    
+    $side = ""; //decbin($save[strlen($save)-1]);
+    $i = 0;
+
+    while ($i < strlen($binary) - 1) {
+
+        $bool = decbin($binary[$i] XOR $binary[$i + 1]);
+        
+        $side = decbin($bool) . $side;
+        
+        $i++;
+    
     }
-    echo $side . " ";
-    $number = bindec($side);
+    $save .= $side[0];
+    echo " a" . $side . "b ";
+    $number = bindec($side); 
     $number = $number >> 1;
     
     return compress_1($number, $side, $save);
 }
 
-$comp = compress_1($number, $side);
-echo "<br/>";
+$comp = compress_1($number);
+echo "<br/>$comp[1]<br/>";
 
-function decompress(string $save, string $decomp) {
+function decompress(string $save, string $binary) {
     
     // add to side (1 bool)
     $i = 0;
-    $comp = $save[0];
-    while ($i < strlen($decomp)) {
-        $bool = $decomp[strlen($decomp) - $i - 1] XOR $decomp[strlen($decomp) - $i - 2];
-        $comp .= (string)($bool);
+    $comp = "";
+    if (strlen($save) > 0)
+        $comp = decbin($save[0]);
+    else
+        return $comp;
+    
+    while ($i < strlen($binary)) {
+
+        $bool = decbin($binary[strlen($binary) - $i - 2] XOR $binary[strlen($binary) - $i - 1]);
+        
+        $comp .= decbin($bool);
+        
         $i++;
+    
     }
-    echo $comp . " ";
+    
+    echo " a" . $comp . "b ";
     if (strlen($save) == 1)
         return $comp;
-    return decompress(substr($save,1), $comp);
+    return decompress(substr($save,1,strlen($save)), $comp);
 }
 $decomp = decompress($comp[0], $comp[1]);
 echo $decomp;
+
 ?>
